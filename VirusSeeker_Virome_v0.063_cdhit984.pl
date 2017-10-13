@@ -492,7 +492,7 @@ sub remove_adapter {
 	print RemoveAdapter "#!/bin/bash\n";
 	print RemoveAdapter "#SBATCH --array=1-2\n";
 	print RemoveAdapter "#SBATCH --mem-per-cpu=20G\n";
-	print RemoveAdapter "#SBATCH --output=".$SLURM_files_dir."/".$current_job_file1.".out\n";
+	print RemoveAdapter "#SBATCH --output=".$SLURM_files_dir."/".$current_job_file1.".%A_%a.out\n";
         print RemoveAdapter "module load cutadapt\n";
 	print RemoveAdapter "IN=$sample_dir"."/".$sample_name."_SE\${SLURM_ARRAY_TASK_ID}.fastq.gz\n";
 	print RemoveAdapter "OUTFILE=$sample_dir"."/".$sample_name."_SE\${SLURM_ARRAY_TASK_ID}.RemoveAdapter.fastq\n";
@@ -1203,7 +1203,7 @@ sub parse_MegaBLAST_RefGenome {
 	open(STCH, ">$job_files_dir/$current_job_file1") or die $!;
 	print STCH "#!/bin/bash\n";  
 	print STCH "#SBATCH --mem-per-cpu=4G\n";
-	print STCH "#SBATCH --output=".$SLURM_files_dir."/".$current_job_file1.".out\n";
+	print STCH "#SBATCH --output=".$SLURM_files_dir."/".$current_job_file1.".%A_%a.out\n";
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
@@ -1971,7 +1971,7 @@ sub parse_MegaBLAST_NT{
 	open(STCH, ">$job_files_dir/$current_job_file1") or die $!;
 	print STCH "#!/bin/bash\n";  
 	print STCH "#SBATCH --mem-per-cpu=4G\n";
-	print STCH "#SBATCH --output=".$SLURM_files_dir."/".$current_job_file1.".out\n";
+	print STCH "#SBATCH --output=".$SLURM_files_dir."/".$current_job_file1.".%A_%a.out\n";
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
