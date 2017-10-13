@@ -101,6 +101,7 @@ die $usage unless scalar @ARGV == 4;
 my ($sample_dir, $ref_genome_choice, $use_checkpoint,  $step_number) = @ARGV;
 die $usage unless (($step_number >= 0)&&($step_number <= 38)) ;
 
+my $workdir = "outdir";
 
 #####################################################################################
 # get name of the sample and path to the data
@@ -153,14 +154,14 @@ my $bamToFastq = "bamToFastq";
 
 ###################################################################################
 # directory suffix constants
-my $MegaBLAST_dir_host = $sample_dir."/".$sample_name."_MegaBLAST_HOST";
-my $repeatmasker_dir = $sample_dir."/".$sample_name."_RepeatMasker";
+my $MegaBLAST_dir_host = ${workdir}."/".$sample_name."_MegaBLAST_HOST";
+my $repeatmasker_dir = ${workdir}."/".$sample_name."_RepeatMasker";
 my $BLASTN_VIRUSDB_DIR_SUFFIX = "_BLASTN_VIRUSDB"; 	# blastn against virus-only (NT extracted) database
 my $BLASTX_VIRUSDB_DIR_SUFFIX = "_BLASTX_VIRUSDB"; # blastx against virus-only (NR extracted) database
 
-my $MegaBLAST_dir_NT = $sample_dir."/".$sample_name."_MegaBLAST_NT";
-my $BLASTN_NT_dir = $sample_dir."/".$sample_name."_BLASTN_NT";
-my $BLASTX_NR_dir =$sample_dir."/".$sample_name."_BLASTX_NR";
+my $MegaBLAST_dir_NT = ${workdir}."/".$sample_name."_MegaBLAST_NT";
+my $BLASTN_NT_dir = ${workdir}."/".$sample_name."_BLASTN_NT";
+my $BLASTX_NR_dir =${workdir}."/".$sample_name."_BLASTX_NR";
 
 my $Bacteria_genome = "/scratch/dwlab/databases/Bacteria_ref/Bacteria_ref_genome.fna";
 
@@ -266,8 +267,10 @@ my $file_number_of_BLASTX = 200;
 # Everything else below should be automated.
 #my $HOME = $ENV{HOME};
 
+mkdir ${workdir};
+
 # store job files here
-my $job_files_dir = $sample_dir."/job_script";
+my $job_files_dir = ${workdir}."/job_script";
 if (! -d $job_files_dir) {
 	`mkdir $job_files_dir`;
 }
@@ -278,12 +281,12 @@ if (! -d $job_files_dir) {
 	#`mkdir $sge_files_dir`;
 #}
 #create a folder to store SGE output and error files
-my $SLURM_files_dir = $sample_dir."/SLURM_DIR";
+my $SLURM_files_dir = ${workdir}."/SLURM_DIR";
 if (! -d $SLURM_files_dir) {
 	`mkdir $SLURM_files_dir`;
 }
 #create a folder to store status files
-my $status_log = $sample_dir."/status_log";
+my $status_log = ${workdir}."/status_log";
 if (! -d $status_log) {
 	`mkdir $status_log`;
 }
@@ -495,8 +498,8 @@ sub remove_adapter {
 	print RemoveAdapter "#SBATCH --output=".$SLURM_files_dir."/".$current_job_file1.".out\n";
         print RemoveAdapter "module load cutadapt\n";
 	print RemoveAdapter "IN=$sample_dir"."/".$sample_name."_SE\${SLURM_ARRAY_TASK_ID}.fastq.gz\n";
-	print RemoveAdapter "OUTFILE=$sample_dir"."/".$sample_name."_SE\${SLURM_ARRAY_TASK_ID}.RemoveAdapter.fastq\n";
-	print RemoveAdapter "REPORT=$sample_dir"."/".$sample_name."_SE\${SLURM_ARRAY_TASK_ID}.RemoveAdapter.report\n\n";
+	print RemoveAdapter "OUTFILE=${workdir}"."/".$sample_name."_SE\${SLURM_ARRAY_TASK_ID}.RemoveAdapter.fastq\n";
+	print RemoveAdapter "REPORT=${workdir}"."/".$sample_name."_SE\${SLURM_ARRAY_TASK_ID}.RemoveAdapter.report\n\n";
 
 	# Check if RemoveAdapter finished successfully. If finished successfully, resubmitting 
 	# this job will skip RemoveAdapter step and will not overwrite the results
@@ -533,13 +536,13 @@ sub stitching {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
 	print STCH "module load ea-utils\n";
-	print STCH "IN1=$sample_dir"."/".$sample_name."_SE1.RemoveAdapter.fastq\n";
-	print STCH "IN2=$sample_dir"."/".$sample_name."_SE2.RemoveAdapter.fastq\n";
-	print STCH "OUTFILE=$sample_dir"."/".$sample_name.".RemoveAdapter.%.fq\n";
-	print STCH "TIMEFILE=$sample_dir"."/".$sample_name.".Stitching_time.txt\n";
-	print STCH "OVERLAPLENGTH=$sample_dir"."/".$sample_name.".Stitching_OVERLAPLENGTH.txt\n";
-	my $stitching_report_file = $sample_dir."/".$sample_name.".stitching.report";
-	my $full_sample_name=$sample_dir."/".$sample_name.".RemoveAdapter"; 
+	print STCH "IN1=${workdir}"."/".$sample_name."_SE1.RemoveAdapter.fastq\n";
+	print STCH "IN2=${workdir}"."/".$sample_name."_SE2.RemoveAdapter.fastq\n";
+	print STCH "OUTFILE=${workdir}"."/".$sample_name.".RemoveAdapter.%.fq\n";
+	print STCH "TIMEFILE=${workdir}"."/".$sample_name.".Stitching_time.txt\n";
+	print STCH "OVERLAPLENGTH=${workdir}"."/".$sample_name.".Stitching_OVERLAPLENGTH.txt\n";
+	my $stitching_report_file = ${workdir}."/".$sample_name.".stitching.report";
+	my $full_sample_name=${workdir}."/".$sample_name.".RemoveAdapter"; 
 
 	# check whether stitching finished successfully. If finished successfully, 
 	# resubmitting this job will skip stitching step and will not overwrite the results
@@ -587,9 +590,9 @@ sub quality_control {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
 	print STCH "module load prinseq\n";
-	print STCH "IN=$sample_dir"."/".$sample_name.".RemoveAdapter.stitched.fastq\n";
-	print STCH "OUTFILE=$sample_dir"."/".$sample_name.".RemoveAdapter.stitched.prinseq\n";
-	print STCH "TIMEFILE=$sample_dir"."/".$sample_name.".prinseq_time.txt\n";
+	print STCH "IN=${workdir}"."/".$sample_name.".RemoveAdapter.stitched.fastq\n";
+	print STCH "OUTFILE=${workdir}"."/".$sample_name.".RemoveAdapter.stitched.prinseq\n";
+	print STCH "TIMEFILE=${workdir}"."/".$sample_name.".prinseq_time.txt\n";
 
 	print STCH "if [ ! -e $status_log/j3_QC_finished ]\n";
 	print STCH "then\n";
@@ -665,8 +668,8 @@ sub fastqtofasta{
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
-	print STCH "IN=$sample_dir"."/".$sample_name.".RemoveAdapter.stitched.prinseq.fastq\n";
-	print STCH "OUTFILE=$sample_dir"."/".$sample_name.".RemoveAdapter.stitched.prinseq.fasta\n";
+	print STCH "IN=${workdir}"."/".$sample_name.".RemoveAdapter.stitched.prinseq.fastq\n";
+	print STCH "OUTFILE=${workdir}"."/".$sample_name.".RemoveAdapter.stitched.prinseq.fasta\n";
 
  	print STCH "OUT=1\n";
 	print STCH "if [ ! -e $status_log/j4_FastqToFasta_finished ]\n";
@@ -696,10 +699,10 @@ sub run_CDHIT{
 	chmod 0755, $job_script;
 
 	print STCH "#!/bin/bash\n";         
-	print STCH "CDHIT_IN=$sample_dir"."/".$sample_name.".RemoveAdapter.stitched.prinseq.fasta \n";
-	print STCH "CDHIT_OUT=$sample_dir"."/".$sample_name.".QCed.cdhit.fa \n";
-	print STCH "CDHIT_REPORT=".$sample_dir."/".$sample_name.".RemoveAdapter.stitched.prinseq.cdhitReport\n";
-	my $cdhitReport = $sample_dir."/".$sample_name.".RemoveAdapter.stitched.prinseq.cdhitReport";
+	print STCH "CDHIT_IN=${workdir}"."/".$sample_name.".RemoveAdapter.stitched.prinseq.fasta \n";
+	print STCH "CDHIT_OUT=${workdir}"."/".$sample_name.".QCed.cdhit.fa \n";
+	print STCH "CDHIT_REPORT=".${workdir}."/".$sample_name.".RemoveAdapter.stitched.prinseq.cdhitReport\n";
+	my $cdhitReport = ${workdir}."/".$sample_name.".RemoveAdapter.stitched.prinseq.cdhitReport";
 
 	print STCH "set -x\n";
 	print STCH "if [ ! -e $status_log/j5_CDHIT_finished ]\n";
@@ -782,8 +785,8 @@ sub run_Tantan{
 	}
 	print STCH "module load tantan\n";
 	print STCH "#!/bin/bash\n\n";
-	print STCH "TANTAN_IN=$sample_dir"."/".$sample_name.".QCed.cdhit.fa \n";
-	print STCH "TANTAN_OUT=$sample_dir"."/".$sample_name.".QCed.cdhit.tantan.fa \n";
+	print STCH "TANTAN_IN=${workdir}"."/".$sample_name.".QCed.cdhit.fa \n";
+	print STCH "TANTAN_OUT=${workdir}"."/".$sample_name.".QCed.cdhit.tantan.fa \n";
 
 	print STCH "if [ ! -e $status_log/j6_TANTAN_finished ]\n";
 	print STCH "then\n";
@@ -816,7 +819,7 @@ sub seq_QC_TANTAN {
 
 	print STCH "if [ ! -e $status_log/j7_QC_TANTAN_finished ]\n";
 	print STCH "then\n";
-	print STCH "	".$run_script_path."Tantan_Sequence_Quality_Control.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."Tantan_Sequence_Quality_Control.pl ${workdir} ${sample_name}\n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -860,9 +863,9 @@ sub prepare_for_RM {
 	print STCH "	mkdir \${RM_DIR} \n\n";
 
 	# split into smaller files
-	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i  \${IN} -o $repeatmasker_dir -f $file_number_of_RepeatMasker -n $num_seq_per_file_Repeatmasker \n";
+	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d ${workdir} -i  \${IN} -o $repeatmasker_dir -f $file_number_of_RepeatMasker -n $num_seq_per_file_Repeatmasker \n";
 	print STCH "	CHECK1=\$?\n"; # if finishes value is 0
-	print STCH "	".$run_script_path."check_split_RepeatMasker.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."check_split_RepeatMasker.pl ${workdir} ${sample_name}\n";
 	print STCH "	CHECK2=\$?\n"; # if finishes correctly value is 0
 	print STCH "	if [ \${CHECK1} -ne 0 -o \${CHECK2} -ne 0 ] \n"; 
 	print STCH "	then\n";
@@ -919,7 +922,7 @@ sub submit_job_array_RM {
 	print STCH "#SBATCH --cpus-per-task=4\n";
 	print STCH "#SBATCH --error=".$SLURM_files_dir."/".$current_job_file1.".%A_%a.error \n";
 	print STCH "#SBATCH --output=".$SLURM_files_dir."/".$current_job_file1.".%A_%a.out \n";
-	print STCH "#SBATCH --workdir=$SLURM_files_dir\n";
+	#print STCH "#SBATCH --workdir=$SLURM_files_dir\n";
 	print STCH "#SBATCH --array=1-$file_number_of_RepeatMasker\n";
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
@@ -949,14 +952,14 @@ sub seq_RMQC {
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
-	print STCH "SAMPLE_DIR=".$sample_dir."\n";
-	print STCH "QC_Record=".$sample_dir."/".$sample_name.".RepeatMasker_check.txt\n\n";
+	print STCH "SAMPLE_DIR=".${workdir}."\n";
+	print STCH "QC_Record=".${workdir}."/".$sample_name.".RepeatMasker_check.txt\n\n";
 
 	print STCH "if [ ! -e $status_log/j10_RMQC_output_finished ]\n";
 	print STCH "then\n";
-	print STCH "	".$run_script_path."RepeatMasker_SequenceQualityControl.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."RepeatMasker_SequenceQualityControl.pl ${workdir} ${sample_name}\n";
 	print STCH '	CHECK1=$?',"\n"; # if finishes value is 0
-	print STCH "	".$run_script_path."RepeatMasker_check_SequenceQualityControl.pl ${sample_dir} ${sample_name} > \${QC_Record} \n";
+	print STCH "	".$run_script_path."RepeatMasker_check_SequenceQualityControl.pl ${workdir} ${sample_name} > \${QC_Record} \n";
 	print STCH '	CHECK2=$?',"\n"; # if finishes correctly value is 0
 	print STCH '	if [ ${CHECK1} -ne 0 -o ${CHECK2} -ne 0 ]',"\n"; # either one is not finished correctly
 	print STCH "	then\n";
@@ -977,9 +980,9 @@ sub map_Host_Reference_Genome_BWA{
 	open(JSTCH, ">$job_script") or die $!;
 	chmod 0755, $job_script;
 	print JSTCH "#!/bin/bash\n";         
-	print JSTCH "IN=$sample_dir"."/".$sample_name.".RepeatMasker.goodSeq.unmasked.fa\n";
-	print JSTCH "OUTFILE=$sample_dir"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.mapped.sam\n";
-	print JSTCH "TIMEFILE=$sample_dir"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.map_time.txt\n";
+	print JSTCH "IN=${workdir}"."/".$sample_name.".RepeatMasker.goodSeq.unmasked.fa\n";
+	print JSTCH "OUTFILE=${workdir}"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.mapped.sam\n";
+	print JSTCH "TIMEFILE=${workdir}"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.map_time.txt\n";
 
 	# Check if mapping finished successfully. If finished successfully, 
 	# resubmitting this job will skip mapping step and will not overwrite 
@@ -1039,11 +1042,11 @@ sub Extract_Host_unmapped_reads{
 	}
 #	print STCH "module load samtools hydra\n";
 	print STCH "module load samtools bedtools/2.22.1\n";
-	print STCH "IN=$sample_dir"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.mapped.sam \n";
-	print STCH "OUTFILE1=$sample_dir"."/".$sample_name."_RepeatMasker_goodSeq_RefGenome_unmapped.bam\n";
-	print STCH "OUTFILE2=$sample_dir"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.unmapped.fastq\n";
-	print STCH "OUTFILE3=$sample_dir"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.unmapped.unmasked.fasta\n";
-	print STCH "OUTFILE4=$sample_dir"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.unmapped.masked.fasta\n";
+	print STCH "IN=${workdir}"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.mapped.sam \n";
+	print STCH "OUTFILE1=${workdir}"."/".$sample_name."_RepeatMasker_goodSeq_RefGenome_unmapped.bam\n";
+	print STCH "OUTFILE2=${workdir}"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.unmapped.fastq\n";
+	print STCH "OUTFILE3=${workdir}"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.unmapped.unmasked.fasta\n";
+	print STCH "OUTFILE4=${workdir}"."/".$sample_name.".RepeatMasker.goodSeq.RefGenome.unmapped.masked.fasta\n";
 
 	print STCH "if [ ! -e $status_log/j12_Extract_Host_unmapped_reads_finished ]\n";
 	print STCH "then\n";
@@ -1058,7 +1061,7 @@ sub Extract_Host_unmapped_reads{
 	print STCH "	OUT3=\$?\n";
 
 	# change unmasked sequence to masked sequence for BLAST
-	print STCH "	".$run_script_path."Unmasked_seq_to_masked_seq.pl ${sample_dir} ${sample_name}\n"; 
+	print STCH "	".$run_script_path."Unmasked_seq_to_masked_seq.pl ${workdir} ${sample_name}\n"; 
 	print STCH "	OUT4=\$?\n";
 	# did not finish successfully
 	print STCH '	if [ ${OUT1} -ne 0 ] || [ ${OUT2} -ne 0 ] || [ ${OUT3} -ne 0 ] || [ ${OUT4} -ne 0 ] ',"\n"; 
@@ -1087,7 +1090,7 @@ sub split_for_MegaBLAST_RefGenome{
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
 	print STCH "IN=".${sample_name}.".RepeatMasker.goodSeq.RefGenome.unmapped.masked.fasta\n\n";
-	print STCH "SAMPLE_DIR=".$sample_dir."\n";
+	print STCH "SAMPLE_DIR=".${workdir}."\n";
 	print STCH "MegaBLAST_DIR=".$MegaBLAST_dir_host."\n";
 
 	print STCH "if [ ! -e $status_log/j13_split_for_MegaBLAST_finished ]\n";
@@ -1102,7 +1105,7 @@ sub split_for_MegaBLAST_RefGenome{
 	print STCH "	mkdir \${MegaBLAST_DIR} \n\n";
 
 	#split fasta 
-	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i \${IN}  -o \${MegaBLAST_DIR}  -f $file_number_of_MegaBLAST_host -n $num_seq_per_file_MegaBLAST_host \n";
+	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d ${workdir} -i \${IN}  -o \${MegaBLAST_DIR}  -f $file_number_of_MegaBLAST_host -n $num_seq_per_file_MegaBLAST_host \n";
 	print STCH '	CHECK1=$?',"\n"; # If correctly completed, value should be 0.
 	print STCH '	if [ ${CHECK1} -ne 0 ]',"\n"; # Did not complete correctly
 	print STCH "	then\n";
@@ -1270,12 +1273,12 @@ sub extract_RefGenomeFiltered_reads{
 	print STCH "then\n";
 
 	# file contains reads left for further analysis
-	print STCH "	SAMPLE_DIR=".$sample_dir."\n";
+	print STCH "	SAMPLE_DIR=".${workdir}."\n";
 	print STCH "	RefGenomeFiltered=".$sample_name.".RefGenomeFiltered.fa\n\n";
-	print STCH "	QC_Record=".$sample_dir."/".$sample_name.".MegaBLAST_HOST_finish_check.txt\n\n";
+	print STCH "	QC_Record=".${workdir}."/".$sample_name.".MegaBLAST_HOST_finish_check.txt\n\n";
 
 	# check to make sure all MegaBLAST finished and parser finished correctly
-	print STCH "	".$run_script_path."check_MegaBLAST_HOST_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_MegaBLAST_HOST_Finished_correctly.pl ${workdir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1284,11 +1287,11 @@ sub extract_RefGenomeFiltered_reads{
 	print STCH "	fi\n";
 
 	# pool the MegaBLAST reference genome filtered reads into a single file 	
-	print STCH "	if [ -e $sample_dir/\${RefGenomeFiltered} ]\n";
+	print STCH "	if [ -e ${workdir}/\${RefGenomeFiltered} ]\n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${RefGenomeFiltered}\n";
+	print STCH "		rm ${workdir}/\${RefGenomeFiltered}\n";
 	print STCH "	fi\n";
-	print STCH "	cat $MegaBLAST_dir_host/*.RefGenomeFiltered.fa >> $sample_dir/\${RefGenomeFiltered}\n\n";
+	print STCH "	cat $MegaBLAST_dir_host/*.RefGenomeFiltered.fa >> ${workdir}/\${RefGenomeFiltered}\n\n";
 	print STCH "	touch $status_log/j16_extract_RefGenomeFiltered_finished\n";
 	print STCH "fi\n\n";
 	close STCH;
@@ -1307,7 +1310,7 @@ sub split_for_BLASTN_VIRUSDB{
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
-	print STCH "BLASTN_VIRUSDB_DIR=".$sample_dir."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX."\n";
+	print STCH "BLASTN_VIRUSDB_DIR=".${workdir}."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX."\n";
 	print STCH "IN=".$sample_name.".RefGenomeFiltered.fa\n\n";
 
 	print STCH "if [ ! -e $status_log/j17_BLASTN_VIRUSDB_split_finished ]\n"; # job never finished
@@ -1320,7 +1323,7 @@ sub split_for_BLASTN_VIRUSDB{
 	# make the directory
 	print STCH "	mkdir \${BLASTN_VIRUSDB_DIR}\n";
 	
-	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i \${IN}  -o \${BLASTN_VIRUSDB_DIR} -f $file_number_of_BLASTN_VIRUSDB -n $num_seq_per_file_BLASTN_VIRUSDB \n";
+	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d ${workdir} -i \${IN}  -o \${BLASTN_VIRUSDB_DIR} -f $file_number_of_BLASTN_VIRUSDB -n $num_seq_per_file_BLASTN_VIRUSDB \n";
 	print STCH '	CHECK=$?',"\n";
 	print STCH '	if [ ${CHECK} -ne 0 ]',"\n"; 
 	print STCH "	then\n";
@@ -1344,7 +1347,7 @@ sub submit_job_array_BLASTN_VIRUSDB{
 	open(STCH, ">$job_script") or die $!;
 	chmod 0755, $job_script;
 
-	print STCH "BLASTN_VIRUSDB_DIR=".$sample_dir."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX."\n";
+	print STCH "BLASTN_VIRUSDB_DIR=".${workdir}."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX."\n";
 	print STCH "BlastNOUT=",'${BLASTN_VIRUSDB_DIR}',"/",$sample_name.".RefGenomeFiltered.fa_file".'${SLURM_ARRAY_TASK_ID}',".blastnv.out\n"; # full path
 	print STCH "QUERY=",'${BLASTN_VIRUSDB_DIR}',"/".$sample_name.".RefGenomeFiltered.fa_file".'${SLURM_ARRAY_TASK_ID}',".fasta\n\n";
    
@@ -1418,7 +1421,7 @@ sub parse_BLASTN_VIRUSDB {
 	}
 	print STCH "#SBATCH --array=1-$file_number_of_BLASTN_VIRUSDB\n";
 	print STCH "module load bio-perl\n";
-	print STCH "BLASTN_VIRUSDB_DIR=".$sample_dir."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX."\n";
+	print STCH "BLASTN_VIRUSDB_DIR=".${workdir}."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX."\n";
 	print STCH "BlastNOUT=",$sample_name.".RefGenomeFiltered.fa_file".'${SLURM_ARRAY_TASK_ID}',".blastnv.out\n";#name only, not full path
 	print STCH "BlastNIN=",'${BLASTN_VIRUSDB_DIR}',"/",$sample_name.".RefGenomeFiltered.fa_file".'${SLURM_ARRAY_TASK_ID}',".fasta\n";#full path
 	print STCH "PARSED=",'${BLASTN_VIRUSDB_DIR}',"/".$sample_name.".RefGenomeFiltered.fa_file".'${SLURM_ARRAY_TASK_ID}',".blastnv.parsed\n\n";
@@ -1429,7 +1432,7 @@ sub parse_BLASTN_VIRUSDB {
 	#if the parsed file does not exist, run parser and check the completeness of the parsed file
 	print STCH '	if [ ! -f $PARSED ]',"\n";
 	print STCH "	then\n";
-	print STCH "		".$run_script_path."BLASTn_VIRUSDB_parser.pl.sqlite ".$sample_dir."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX." \${BlastNOUT}\n";
+	print STCH "		".$run_script_path."BLASTn_VIRUSDB_parser.pl.sqlite ".${workdir}."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX." \${BlastNOUT}\n";
 	print STCH "		".$run_script_path."check_Blast_parsed_file.pl \${BlastNIN} \${PARSED}\n";
 	print STCH '		CHECK=$?',"\n";
 	#check if parsed file is completed, if not completed, exit
@@ -1446,7 +1449,7 @@ sub parse_BLASTN_VIRUSDB {
 	#check if parsed file is completed. If not correctly completed exit.
 	print STCH '		if [ ${CHECK} -ne 0 ]',"\n"; # value is 0 if completed correctly.
 	print STCH "		then\n"; # rerun the parser
-	print STCH "			".$run_script_path."BLASTn_VIRUSDB_parser.pl.sqlite ".$sample_dir."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX." \${BlastNOUT}\n";
+	print STCH "			".$run_script_path."BLASTn_VIRUSDB_parser.pl.sqlite ".${workdir}."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX." \${BlastNOUT}\n";
 	print STCH "			".$run_script_path."check_Blast_parsed_file.pl \${BlastNIN}  \${PARSED}\n";
 	print STCH '			CHECK=$?',"\n";
 	#check if parsed file is completed, if not completed, exit
@@ -1474,18 +1477,18 @@ sub split_for_BLASTX_VIRUSDB {
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
-	print STCH "SAMPLE_DIR=".$sample_dir."\n";
-	print STCH "BLASTX_VIRUSDB_DIR=".$sample_dir."/".$sample_name.$BLASTX_VIRUSDB_DIR_SUFFIX."\n";
+	print STCH "SAMPLE_DIR=".${workdir}."\n";
+	print STCH "BLASTX_VIRUSDB_DIR=".${workdir}."/".$sample_name.$BLASTX_VIRUSDB_DIR_SUFFIX."\n";
 	print STCH "BLASTN_VIRUSDB_Filtered_fa=".$sample_name.".BLASTN_VIRUSDB_Filtered.fa\n";
 	print STCH "BLASTN_VIRUSDB_Hit_fa=".$sample_name.".BLASTN_VIRUSDB_HIT.fa\n";
 	print STCH "BLASTN_VIRUSDB_Phage_fa=".$sample_name.".BLASTN_VIRUSDB_Phage.fa\n";
-	print STCH "BLASTN_VIRUSDB_DIR=".$sample_dir."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX."\n\n";
-	print STCH "QC_Record=".$sample_dir."/".$sample_name.".BLASTN_VIRUSDB_finish_check.txt\n\n";
+	print STCH "BLASTN_VIRUSDB_DIR=".${workdir}."/".$sample_name.$BLASTN_VIRUSDB_DIR_SUFFIX."\n\n";
+	print STCH "QC_Record=".${workdir}."/".$sample_name.".BLASTN_VIRUSDB_finish_check.txt\n\n";
 
 	print STCH "if [ ! -e $status_log/j20_finished_split_for_BLASTX_VIRUSDB ]\n";
 	print STCH "then\n";
 	# check to make sure the number of reads add togetehr equals the total input reads
-	print STCH "	".$run_script_path."check_BLASTN_VIRUSDB_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_BLASTN_VIRUSDB_Finished_correctly.pl ${workdir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1503,32 +1506,32 @@ sub split_for_BLASTX_VIRUSDB {
 	print STCH "	mkdir \${BLASTX_VIRUSDB_DIR}\n";
 
 	# pool all the BLASTN VIRUSDB hits into a single file
-	print STCH "	if [ -e $sample_dir/\${BLASTN_VIRUSDB_Hit_fa} ]\n";
+	print STCH "	if [ -e ${workdir}/\${BLASTN_VIRUSDB_Hit_fa} ]\n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${BLASTN_VIRUSDB_Hit_fa}\n";
+	print STCH "		rm ${workdir}/\${BLASTN_VIRUSDB_Hit_fa}\n";
 	print STCH "	fi\n";
-	print STCH "	cat \${BLASTN_VIRUSDB_DIR}/*.BNVIRUSDB_hit.fa >> $sample_dir/\${BLASTN_VIRUSDB_Hit_fa}\n\n";
+	print STCH "	cat \${BLASTN_VIRUSDB_DIR}/*.BNVIRUSDB_hit.fa >> ${workdir}/\${BLASTN_VIRUSDB_Hit_fa}\n\n";
 
 	# pool all the BLASTN VIRUSDB filtered reads into a single file
-	print STCH "	if [ -e $sample_dir/\${BLASTN_VIRUSDB_Filtered_fa} ]\n";
+	print STCH "	if [ -e ${workdir}/\${BLASTN_VIRUSDB_Filtered_fa} ]\n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${BLASTN_VIRUSDB_Filtered_fa}\n";
+	print STCH "		rm ${workdir}/\${BLASTN_VIRUSDB_Filtered_fa}\n";
 	print STCH "	fi\n";
-	print STCH "	cat \${BLASTN_VIRUSDB_DIR}/*.BNVIRUSDB_filtered.fa >> $sample_dir/\${BLASTN_VIRUSDB_Filtered_fa}\n\n";
+	print STCH "	cat \${BLASTN_VIRUSDB_DIR}/*.BNVIRUSDB_filtered.fa >> ${workdir}/\${BLASTN_VIRUSDB_Filtered_fa}\n\n";
 
 	# pool all the BLASTN VIRUSDB phage hits into a single file
-	print STCH "	if [ -e $sample_dir/\${BLASTN_VIRUSDB_Phage_fa} ]\n";
+	print STCH "	if [ -e ${workdir}/\${BLASTN_VIRUSDB_Phage_fa} ]\n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${BLASTN_VIRUSDB_Phage_fa}\n";
+	print STCH "		rm ${workdir}/\${BLASTN_VIRUSDB_Phage_fa}\n";
 	print STCH "	fi\n";
-	print STCH "	cat \${BLASTN_VIRUSDB_DIR}/*.BNVIRUSDB_phage.fa >> $sample_dir/\${BLASTN_VIRUSDB_Phage_fa}\n\n";
+	print STCH "	cat \${BLASTN_VIRUSDB_DIR}/*.BNVIRUSDB_phage.fa >> ${workdir}/\${BLASTN_VIRUSDB_Phage_fa}\n\n";
 
 	# split into smaller files
 	# split to -n number of files, this number should be consistent with 
 	# the number of blast job array submitted bellow
-	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d \${SAMPLE_DIR} -i  \${BLASTN_VIRUSDB_Filtered_fa} -o \${BLASTX_VIRUSDB_DIR} -f $file_number_of_BLASTX_VIRUSDB  -n $num_seq_per_file_BLASTX_VIRUSDB \n";
+	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d ${workdir} -i  \${BLASTN_VIRUSDB_Filtered_fa} -o \${BLASTX_VIRUSDB_DIR} -f $file_number_of_BLASTX_VIRUSDB  -n $num_seq_per_file_BLASTX_VIRUSDB \n";
 	print STCH '	CHECK1=$?',"\n";
-	print STCH "	".$run_script_path."check_split_BLASTX_VIRUSDB.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."check_split_BLASTX_VIRUSDB.pl ${workdir} ${sample_name} \n";
 	print STCH '	CHECK2=$?',"\n";
 #	print STCH '	echo ${CHECK1}, ${CHECK2}', "\n";
 	print STCH '	if [ ${CHECK1} -ne 0 -o ${CHECK2} -ne 0 ]',"\n"; 
@@ -1552,7 +1555,7 @@ sub submit_job_array_BLASTX_VIRUSDB{
 	open(STCH, ">$job_script") or die $!;
 	chmod 0755, $job_script;
 
-	print STCH "VIRUS_DIR=".$sample_dir."/".$sample_name.$BLASTX_VIRUSDB_DIR_SUFFIX."\n";
+	print STCH "VIRUS_DIR=".${workdir}."/".$sample_name.$BLASTX_VIRUSDB_DIR_SUFFIX."\n";
 	print STCH "BLASTX_VIRUSDB_OUT=",'${VIRUS_DIR}',"/",$sample_name.".BLASTN_VIRUSDB_Filtered.fa_file".'${SLURM_ARRAY_TASK_ID}',".BLASTX_VIRUSDB.out\n";#full path
 	print STCH "QUERY=",'${VIRUS_DIR}',"/".$sample_name.".BLASTN_VIRUSDB_Filtered.fa_file".'${SLURM_ARRAY_TASK_ID}',".fasta\n\n";
 
@@ -1629,7 +1632,7 @@ sub parse_BLASTX_VIRUSDB {
 	}
 	print STCH "module load bio-perl\n";
 #	print STCH "set -x\n";
-	print STCH "VIRUS_DIR=".$sample_dir."/".$sample_name.$BLASTX_VIRUSDB_DIR_SUFFIX."\n";
+	print STCH "VIRUS_DIR=".${workdir}."/".$sample_name.$BLASTX_VIRUSDB_DIR_SUFFIX."\n";
 	print STCH "BLASTX_VIRUSDB_OUT=",$sample_name.".BLASTN_VIRUSDB_Filtered.fa_file".'${SLURM_ARRAY_TASK_ID}',".BLASTX_VIRUSDB.out\n"; #name only, not full path
 	print STCH "BLASTX_VIRUSDB_IN=",'${VIRUS_DIR}',"/",$sample_name.".BLASTN_VIRUSDB_Filtered.fa_file".'${SLURM_ARRAY_TASK_ID}',".fasta\n"; #full path
 	print STCH "PARSED=",'${VIRUS_DIR}',"/".$sample_name.".BLASTN_VIRUSDB_Filtered.fa_file".'${SLURM_ARRAY_TASK_ID}',".BLASTX_VIRUSDB.parsed\n\n";
@@ -1680,20 +1683,20 @@ sub pool_seq_for_mapping_Bacteria {
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
-	print STCH "SAMPLE_DIR=".$sample_dir."\n";
+	print STCH "SAMPLE_DIR=".${workdir}."\n";
 	print STCH "VIRUSDB_HIT_all=".$sample_name."_VIRUSDB_HIT.fa\n";
 	print STCH "BLASTN_VIRUSDB_Hit_fa=".$sample_name.".BLASTN_VIRUSDB_HIT.fa\n";
 	print STCH "BLASTX_VIRUSDB_Hit_fa=".$sample_name.".BLASTX_VIRUSDB_HIT.fa\n";
 	print STCH "BLASTX_VIRUSDB_Phage_fa=".$sample_name.".BLASTX_VIRUSDB_Phage.fa\n";
 	print STCH "BLASTX_VIRUSDB_Filtered_fa=".$sample_name.".BLASTX_VIRUSDB_Filtered.fa\n";
-	print STCH "BLASTX_VIRUSDB_DIR=".$sample_dir."/".$sample_name.$BLASTX_VIRUSDB_DIR_SUFFIX."\n\n";
-	print STCH "QC_Record=".$sample_dir."/".$sample_name.".BLASTX_VIRUSDB_finish_check.txt\n\n";
+	print STCH "BLASTX_VIRUSDB_DIR=".${workdir}."/".$sample_name.$BLASTX_VIRUSDB_DIR_SUFFIX."\n\n";
+	print STCH "QC_Record=".${workdir}."/".$sample_name.".BLASTX_VIRUSDB_finish_check.txt\n\n";
 
 	print STCH "if [ ! -e $status_log/j23_finished_pool_seq_for_mapping_Bacteria ]\n"; # the job never finished
 	print STCH "then\n";
 
 	# check to make sure the number of reads add togetehr equals the total input reads
-	print STCH "	".$run_script_path."check_BLASTX_VIRUSDB_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_BLASTX_VIRUSDB_Finished_correctly.pl ${workdir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1702,35 +1705,35 @@ sub pool_seq_for_mapping_Bacteria {
 	print STCH "	fi\n";
 
 	# pool all the BLASTX VIRUSDB hits into a single file
-	print STCH "	if [ -e $sample_dir/\${BLASTX_VIRUSDB_Hit_fa} ]\n";
+	print STCH "	if [ -e ${workdir}/\${BLASTX_VIRUSDB_Hit_fa} ]\n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${BLASTX_VIRUSDB_Hit_fa} \n";
+	print STCH "		rm ${workdir}/\${BLASTX_VIRUSDB_Hit_fa} \n";
 	print STCH "	fi\n";
-	print STCH "	cat \${BLASTX_VIRUSDB_DIR}/*.BXVIRUSDB_hit.fa >> $sample_dir/\${BLASTX_VIRUSDB_Hit_fa} \n\n";
+	print STCH "	cat \${BLASTX_VIRUSDB_DIR}/*.BXVIRUSDB_hit.fa >> ${workdir}/\${BLASTX_VIRUSDB_Hit_fa} \n\n";
 
 	# pool all the BLASTX VIRUSDB filtered into a single file
-	print STCH "	if [ -e $sample_dir/\${BLASTX_VIRUSDB_Filtered_fa} ] \n";
+	print STCH "	if [ -e ${workdir}/\${BLASTX_VIRUSDB_Filtered_fa} ] \n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${BLASTX_VIRUSDB_Filtered_fa} \n";
+	print STCH "		rm ${workdir}/\${BLASTX_VIRUSDB_Filtered_fa} \n";
 	print STCH "	fi\n";
-	print STCH "	cat \${BLASTX_VIRUSDB_DIR}/*.BXVIRUSDB_filtered.fa >> $sample_dir/\${BLASTX_VIRUSDB_Filtered_fa} \n\n";
+	print STCH "	cat \${BLASTX_VIRUSDB_DIR}/*.BXVIRUSDB_filtered.fa >> ${workdir}/\${BLASTX_VIRUSDB_Filtered_fa} \n\n";
 
 	# pool all the BLASTX VIRUSDB phage hits into a single file
-	print STCH "	if [ -e $sample_dir/\${BLASTX_VIRUSDB_Phage_fa} ]\n";
+	print STCH "	if [ -e ${workdir}/\${BLASTX_VIRUSDB_Phage_fa} ]\n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${BLASTX_VIRUSDB_Phage_fa} \n";
+	print STCH "		rm ${workdir}/\${BLASTX_VIRUSDB_Phage_fa} \n";
 	print STCH "	fi\n";
-	print STCH "	cat \${BLASTX_VIRUSDB_DIR}/*.BXVIRUSDB_phage.fa >> $sample_dir/\${BLASTX_VIRUSDB_Phage_fa} \n\n";
+	print STCH "	cat \${BLASTX_VIRUSDB_DIR}/*.BXVIRUSDB_phage.fa >> ${workdir}/\${BLASTX_VIRUSDB_Phage_fa} \n\n";
 
 	# pool BLASTX VIRUSDB hits and BLASTN VIRUSDB hits into a single file
-	print STCH "	if [ -e $sample_dir/\${VIRUSDB_HIT_all} ]\n";
+	print STCH "	if [ -e ${workdir}/\${VIRUSDB_HIT_all} ]\n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${VIRUSDB_HIT_all} \n";
+	print STCH "		rm ${workdir}/\${VIRUSDB_HIT_all} \n";
 	print STCH "	fi\n";
-	print STCH "	cat  $sample_dir/\${BLASTX_VIRUSDB_Hit_fa} $sample_dir/\${BLASTN_VIRUSDB_Hit_fa} > \${SAMPLE_DIR}/\${VIRUSDB_HIT_all} \n";
+	print STCH "	cat  ${workdir}/\${BLASTX_VIRUSDB_Hit_fa} ${workdir}/\${BLASTN_VIRUSDB_Hit_fa} > ${workdir}/\${VIRUSDB_HIT_all} \n";
 
 	# change masked sequence to unmasked sequence for mapping to Bacteria
-	print STCH "	".$run_script_path."Masked_seq_to_unmasked_seq.pl ${sample_dir} ${sample_name}\n"; 
+	print STCH "	".$run_script_path."Masked_seq_to_unmasked_seq.pl ${workdir} ${sample_name} \n"; 
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1759,10 +1762,10 @@ sub map_Bacteria_Genome{
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
 	print STCH "module load bwa\n";
-	print STCH "IN=$sample_dir"."/".$sample_name."_VIRUSDB_HIT_unmasked.fa\n";
-	print STCH "OUTFILE=$sample_dir"."/".$sample_name."_VIRUSDB_HIT_Bacteria_mapped.sam\n";
-#	print STCH "UNMAPPED=$sample_dir"."/".$sample_name.".NonPhage.Bacteria.unmapped.fa\n\n";
-	print STCH "TIMEFILE=$sample_dir"."/".$sample_name."_VIRUSDB_HIT_Bacteria_mapping_time.txt\n";
+	print STCH "IN=${workdir}"."/".$sample_name."_VIRUSDB_HIT_unmasked.fa\n";
+	print STCH "OUTFILE=${workdir}"."/".$sample_name."_VIRUSDB_HIT_Bacteria_mapped.sam\n";
+#	print STCH "UNMAPPED=${workdir}"."/".$sample_name.".NonPhage.Bacteria.unmapped.fa\n\n";
+	print STCH "TIMEFILE=${workdir}"."/".$sample_name."_VIRUSDB_HIT_Bacteria_mapping_time.txt\n";
 
 	# Check if SOAPaligner finished successfully. If finished successfully, 
 	# resubmitting this job will skip SOAPAligner step and will not overwrite 
@@ -1799,10 +1802,10 @@ sub Extract_Bacteria_unmapped_reads{
 	}
 #	print STCH "module load samtools hydra\n";
 	print STCH "module load samtools bedtools/2.22.1\n";
-	print STCH "IN=$sample_dir"."/".$sample_name."_VIRUSDB_HIT_Bacteria_mapped.sam \n";
-	print STCH "OUTFILE1=$sample_dir"."/".$sample_name."_VIRUSDB_HIT_Bacteria_unmapped.bam\n";
-	print STCH "OUTFILE2=$sample_dir"."/".$sample_name."_VIRUSDB_HIT_Bacteria_unmapped.fastq\n";
-	print STCH "OUTFILE3=$sample_dir"."/".$sample_name."_VIRUSDB_HIT_Bacteria_unmapped.fasta\n";
+	print STCH "IN=${workdir}"."/".$sample_name."_VIRUSDB_HIT_Bacteria_mapped.sam \n";
+	print STCH "OUTFILE1=${workdir}"."/".$sample_name."_VIRUSDB_HIT_Bacteria_unmapped.bam\n";
+	print STCH "OUTFILE2=${workdir}"."/".$sample_name."_VIRUSDB_HIT_Bacteria_unmapped.fastq\n";
+	print STCH "OUTFILE3=${workdir}"."/".$sample_name."_VIRUSDB_HIT_Bacteria_unmapped.fasta\n";
 
 	print STCH "if [ ! -e $status_log/j25_Extract_Bacteria_unmapped_reads_finished ]\n";
 	print STCH "then\n";
@@ -1835,7 +1838,7 @@ sub Extract_Bacteria_unmapped_reads{
 	print STCH "	fi\n";
     
 	# change unmasked sequence to masked for BLAST
-	print STCH "	".$run_script_path."Unmasked_seq_to_masked_seq_After_BacteriaMapping.pl ${sample_dir} ${sample_name}\n"; 
+	print STCH "	".$run_script_path."Unmasked_seq_to_masked_seq_After_BacteriaMapping.pl ${workdir} ${sample_name} \n"; 
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1863,7 +1866,7 @@ sub split_for_MegaBLAST_NT{
 	if (!$step_number) {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
-	print STCH "SAMPLE_DIR=".$sample_dir."\n";
+	print STCH "SAMPLE_DIR=".${workdir}."\n";
 	print STCH "MegaBLAST_DIR=".$MegaBLAST_dir_NT."\n";
 	print STCH "IN=".$sample_name."_VIRUSDB_HIT_Bacteria_unmapped_masked.fasta\n\n";
 
@@ -1880,8 +1883,8 @@ sub split_for_MegaBLAST_NT{
 	print STCH "	mkdir \${MegaBLAST_DIR}\n\n";
 
 	# split into smaller files
-	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i \${IN} -o \${MegaBLAST_DIR}   -f $file_number_of_MegaBLAST_NT -n $num_seq_per_file_MegaBLAST_NT \n";
-	print STCH "	".$run_script_path."check_split_MegaBLAST_NT.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d ${workdir} -i \${IN} -o \${MegaBLAST_DIR}   -f $file_number_of_MegaBLAST_NT -n $num_seq_per_file_MegaBLAST_NT \n";
+	print STCH "	".$run_script_path."check_split_MegaBLAST_NT.pl ${workdir} ${sample_name} \n";
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2035,12 +2038,12 @@ sub pool_split_for_BlastN{
 	print STCH "BLASTN_NT_DIR=".$BLASTN_NT_dir."\n";
 	print STCH "MegaBLAST_DIR=".$MegaBLAST_dir_NT."\n";
 	print STCH "MegaBLAST_Filtered_fa=".$sample_name.".VIRUSDB_HIT_MegaBLAST_NT_Filtered.fa\n\n";
-	print STCH "QC_Record=".$sample_dir."/".$sample_name.".MegaBLAST_NT_check.txt\n\n";
+	print STCH "QC_Record=".${workdir}."/".$sample_name.".MegaBLAST_NT_check.txt\n\n";
 
 	print STCH "if [ ! -e $status_log/j29_finished_split_for_BLASTN_NT ]\n"; # job never finished
 	print STCH "then\n";
 	# check to make sure all parser finished 
-	print STCH "	".$run_script_path."check_MegaBLAST_NT_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_MegaBLAST_NT_Finished_correctly.pl ${workdir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2058,15 +2061,15 @@ sub pool_split_for_BlastN{
 	print STCH "	mkdir \${BLASTN_NT_DIR}\n\n";
 
 	# if the files already exist, remove it
-	print STCH "	if [ -f $sample_dir/\${MegaBLAST_Filtered_fa} ] \n";
+	print STCH "	if [ -f ${workdir}/\${MegaBLAST_Filtered_fa} ] \n";
 	print STCH "	then\n";
-	print STCH "		rm $sample_dir/\${MegaBLAST_Filtered_fa}\n";
+	print STCH "		rm ${workdir}/\${MegaBLAST_Filtered_fa}\n";
 	print STCH "	fi\n";
-	print STCH "	cat \${MegaBLAST_DIR}/*.MegaBLAST_filtered.fa >> $sample_dir/\${MegaBLAST_Filtered_fa}\n";
+	print STCH "	cat \${MegaBLAST_DIR}/*.MegaBLAST_filtered.fa >> ${workdir}/\${MegaBLAST_Filtered_fa}\n";
 	
 	# split into smaller files
-	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i \${MegaBLAST_Filtered_fa} -o \${BLASTN_NT_DIR}   -f $file_number_of_BLASTN -n $num_seq_per_file_BLASTN \n";
-	print STCH "	".$run_script_path."check_split_BN.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d ${workdir} -i \${MegaBLAST_Filtered_fa} -o \${BLASTN_NT_DIR}   -f $file_number_of_BLASTN -n $num_seq_per_file_BLASTN \n";
+	print STCH "	".$run_script_path."check_split_BN.pl ${workdir} ${sample_name} \n";
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2220,12 +2223,12 @@ sub pool_split_for_BLASTX{
 	print STCH "SAMPLE_DIR=".$sample_dir."\n";
 	print STCH "BX_DIR=".$BLASTX_NR_dir."\n";
 	print STCH "BNFiltered_fa=".$sample_name."_BLASTN_NT_Filtered.fa\n";
-	print STCH "QC_Record=".$sample_dir."/".$sample_name.".BLAST_NT_check.txt\n\n";
+	print STCH "QC_Record=".${workdir}."/".$sample_name.".BLAST_NT_check.txt\n\n";
 
 	print STCH "if [ ! -e $status_log/j32_BX_split_finished ]\n"; # job never finished
 	print STCH "then\n";
 	# check to make sure all parser finished 
-	print STCH "	".$run_script_path."check_BLAST_NT_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_BLAST_NT_Finished_correctly.pl ${workdir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2243,10 +2246,10 @@ sub pool_split_for_BLASTX{
 	print STCH "	then\n";
 	print STCH "		rm \$BNFiltered_fa\n";
 	print STCH "	fi\n\n";
-	print STCH "	cat $BLASTN_NT_dir/*.BNfiltered.fa >> $sample_dir/\${BNFiltered_fa}\n";
+	print STCH "	cat $BLASTN_NT_dir/*.BNfiltered.fa >> ${workdir}/\${BNFiltered_fa}\n";
 
-	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i \${BNFiltered_fa}  -o \${BX_DIR} -f $file_number_of_BLASTX -n $num_seq_per_file_BLASTX \n";
-	print STCH "	".$run_script_path."check_split_BX.pl ${sample_dir} ${sample_name} \n";
+	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d ${workdir} -i \${BNFiltered_fa}  -o \${BX_DIR} -f $file_number_of_BLASTX -n $num_seq_per_file_BLASTX \n";
+	print STCH "	".$run_script_path."check_split_BX.pl ${workdir} ${sample_name} \n";
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2399,10 +2402,10 @@ sub generate_assignment_report{
 	}
 	print STCH "module load bio-perl perl-modules\n";
 	print STCH "set -x\n";
-	print STCH "SAMPLE_DIR=".$sample_dir."\n";
-	print STCH "REPORT=".$sample_dir."/".$sample_name.".AssignmentReport\n";
-	print STCH "TIMEFILE=$sample_dir"."/".$sample_name.".AssignmentReport_time.txt\n";
-	print STCH "QC_Record=".$sample_dir."/".$sample_name.".BLASTX_NR_check.txt\n\n";
+	print STCH "SAMPLE_DIR=".${workdir}."\n";
+	print STCH "REPORT=".${workdir}."/".$sample_name.".AssignmentReport\n";
+	print STCH "TIMEFILE=${workdir}"."/".$sample_name.".AssignmentReport_time.txt\n";
+	print STCH "QC_Record=".${workdir}."/".$sample_name.".BLASTX_NR_check.txt\n\n";
 
 	print STCH "if [ ! -e $status_log/j35_AssignmentReport_finished ]\n"; # job never finished
 	print STCH "then\n";
@@ -2410,7 +2413,7 @@ sub generate_assignment_report{
 
 	# check to make sure all parser finished 
 
-	print STCH "	".$run_script_path."check_BLASTX_NR_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_BLASTX_NR_Finished_correctly.pl ${workdir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2418,12 +2421,12 @@ sub generate_assignment_report{
 	print STCH "		exit 1\n"; 
 	print STCH "	fi\n";
 
-	print STCH "	".$run_script_path."Generate_assignment_report.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."Generate_assignment_report.pl ${workdir} ${sample_name} \n";
 	print STCH '	grep "# Finished Assignment Report" ${REPORT}',"\n";
 	print STCH '	CHECK=$?',"\n";
 	print STCH '	if [ ${CHECK} -ne 0 ]',"\n";   
 	print STCH "	then\n";
-	print STCH "		echo \"Fatal Error in generating report for \${SAMPLE_DIR}.\"  \n";
+	print STCH "		echo \"Fatal Error in generating report for ${workdir} ${sample_name}.\"  \n";
 	print STCH "		exit 1\n";
 	print STCH "   	fi\n";
 	print STCH "fi\n";
@@ -2445,13 +2448,13 @@ sub generate_assignment_summary {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
 
-	print STCH "OUTPUT=".$sample_dir."/".$sample_name.".AssignmentSummary\n";
-	print STCH "TIMEFILE=$sample_dir"."/".$sample_name.".AssignmentSummary_time.txt\n";
+	print STCH "OUTPUT=".${workdir}."/".$sample_name.".AssignmentSummary\n";
+	print STCH "TIMEFILE=${workdir}"."/".$sample_name.".AssignmentSummary_time.txt\n";
 
 	print STCH "if [ ! -e $status_log/j36_AssignmentSummary_finished ]\n"; # job never finished
 	print STCH "then\n";
 	print STCH "	date > \${TIMEFILE}\n";
-	print STCH "	".$run_script_path."Generate_assignment_summary.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."Generate_assignment_summary.pl ${workdir} ${sample_name} \n";
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2479,19 +2482,19 @@ sub generate_phage_report{
 	print STCH "module load perl-modules\n";
 	print STCH "module load bio-perl\n";
 	print STCH "set -x\n";
-	print STCH "SAMPLE_DIR=".$sample_dir."\n";
-	print STCH "REPORT=".$sample_dir."/".$sample_name.".PhageAssignmentReport\n";
-	print STCH "TIMEFILE=$sample_dir"."/".$sample_name.".PhageAssignmentReport_time.txt\n";
+	print STCH "SAMPLE_DIR=".${workdir}."\n";
+	print STCH "REPORT=".${workdir}."/".$sample_name.".PhageAssignmentReport\n";
+	print STCH "TIMEFILE=${workdir}"."/".$sample_name.".PhageAssignmentReport_time.txt\n";
 
 	print STCH "if [ ! -e $status_log/j37_PhageAssignmentReport_finished ]\n"; # job never finished
 	print STCH "then\n";
 	print STCH "	date > \${TIMEFILE}\n";
-	print STCH "	".$run_script_path."Phage_Generate_assignment_report.pl ${sample_dir} ${sample_name}\n";
+	print STCH "	".$run_script_path."Phage_Generate_assignment_report.pl ${workdir} ${sample_name} \n";
 	print STCH '	grep "# Finished Assignment Report" ${REPORT}',"\n";
 	print STCH '	CHECK=$?',"\n";
 	print STCH '	if [ ${CHECK} -ne 0 ]',"\n";   
 	print STCH "	then\n";
-	print STCH "		echo \"Fatal Error in generating phage report for \${SAMPLE_DIR}.\"  \n";
+	print STCH "		echo \"Fatal Error in generating phage report for ${workdir} ${sample_name}.\"  \n";
 	print STCH "		exit 1\n";
 	print STCH "   	fi\n";
 	print STCH "fi\n";
@@ -2512,8 +2515,8 @@ sub generate_phage_summary {
 		print STCH "#SBATCH --depend=afterok:$last_jobid\n";
 	}
 
-	print STCH "OUTPUT=".$sample_dir."/".$sample_name.".PhageAssignmentSummary\n";
-	print STCH "TIMEFILE=$sample_dir"."/".$sample_name.".PhageAssignmentSummary_time.txt\n";
+	print STCH "OUTPUT=".${workdir}."/".$sample_name.".PhageAssignmentSummary\n";
+	print STCH "TIMEFILE=${workdir}"."/".$sample_name.".PhageAssignmentSummary_time.txt\n";
 
 	print STCH "if [ ! -e $status_log/j38_PhageAssignmentSummary_finished ]\n"; # job never finished
 	print STCH "then\n";
@@ -2521,7 +2524,7 @@ sub generate_phage_summary {
 	print STCH '	CHECK=1',"\n";
 	print STCH '	while [ ${CHECK} -ne 0 ] ',"\n"; 
 	print STCH "	do\n";
-	print STCH "		".$run_script_path."Phage_Generate_assignment_summary.pl ${sample_dir} ${sample_name}\n";
+	print STCH "		".$run_script_path."Phage_Generate_assignment_summary.pl ${workdir} ${sample_name} \n";
 	print STCH '		grep "# Finished Assignment Summary" ${OUTPUT}',"\n";
 	print STCH '		CHECK=$?',"\n";
 	print STCH "	done\n";
