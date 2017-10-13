@@ -20,6 +20,7 @@ use Bio::Taxon;
 use Bio::DB::Taxonomy;
 use Bio::Tree::Tree;
 use DBI();
+use File::Temp qw/ tempfile tempdir /;
 
 my $Usage = '
 This script accepts a blastn output file and parse the information
@@ -43,8 +44,7 @@ my $database_dir = "/scratch/dwlab/databases/taxdump_20160802";
 my $dbh_sqlite = DBI->connect("dbi:SQLite:dbname=/scratch/dwlab/databases/taxdump_20160802/vhunter.db","", "",{'RaiseError'=>1}) or die "Unable to connect $DBI::errstr\n";
 ###################################################################################
 # Everhting below should not need modification
-#my $HOME = $ENV{HOME};
-my $HOME = "/scratch/dwlab/gzhao/"; # set this directory as HOME
+my $TMPDIR = tempdir();
 
 # cutoff value for having a good hit
 my $E_cutoff = 1e-10;
@@ -62,14 +62,10 @@ $file_name_prefix =~ s/\.megablast\.out//;
 my $outFile = $dir."/".$file_name_prefix.".megablast.parsed";
 open (OUT, ">$outFile") or die "can not open file $outFile!\n";
 
-# create a tmp_taxonomy directory in the home directory if tmp_taxonomy does not exist
-if (! -d $HOME."/tmp_taxonomy") {
-	`mkdir $HOME"/tmp_taxonomy"`;
-}
 
 # get a Taxon from a Bio::DB::Taxonomy object
 my $dbh = Bio::DB::Taxonomy->new(-source => 'flatfile',
-		-directory=> "$HOME/tmp_taxonomy",
+		-directory=> "$TMPDIR",
 		-nodesfile=> "$database_dir/nodes.dmp",
 		-namesfile=> "$database_dir/names.dmp",
 		);
