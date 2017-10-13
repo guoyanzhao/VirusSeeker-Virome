@@ -19,6 +19,7 @@ use Bio::Taxon;
 use Bio::DB::Taxonomy;
 use Bio::Tree::Tree;
 use DBI();
+use File::Temp qw/ tempfile tempdir /;
 
 my $Usage = '
 This script accepts a BLASTx output file and parse the information
@@ -44,8 +45,7 @@ my $dbh_sqlite = DBI->connect("dbi:SQLite:dbname=/scratch/dwlab/databases/taxdum
 
 #################################################################################
 # Don't need to change anything below
-#my $HOME = $ENV{HOME};
-my $HOME = "/scratch/dwlab/gzhao/"; # set this directory as HOME
+my $TMPDIR = tempdir();
 
 my %assignment = ();
 my %assignment_NotBestE = ();
@@ -60,14 +60,10 @@ $file_name_prefix =~ s/\.blastx\.out//;
 my $outFile = $dir."/".$file_name_prefix.".blastx.parsed";
 open (OUT, ">$outFile") or die "can not open file $outFile!\n";
 
-# create a tmp_taxonomy directory in the home directory if tmp_taxonomy does not exist
-if (! -d $HOME."/tmp_taxonomy") {
-        `mkdir $HOME"/tmp_taxonomy"`;
-}
 
 # get a Taxon from a Bio::DB::Taxonomy object
 my $dbh = Bio::DB::Taxonomy->new(-source => 'flatfile',
-		-directory=> "$HOME/tmp_taxonomy",
+		-directory=> "$TMPDIR",
 		-nodesfile=> "$database_dir/nodes.dmp",
 		-namesfile=> "$database_dir/names.dmp",
 		);
