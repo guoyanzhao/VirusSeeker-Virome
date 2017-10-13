@@ -22,18 +22,16 @@ into file .RepeatMasker.RepeatLowComplexSeq.fa
 3) good sequences are put into .RepeatMasker.goodSeq.masked.fa (for BLAST)
 and .RepeatMasker.goodSeq.unmasked.fa (for mapping)
 
-perl script <sample dir>
+perl script <sample dir> <sample name>
 <sample dir> = full path of the folder holding files for this sample
                without last "/"
+<sample name> = sample name
 
 ';
-die $usage unless scalar @ARGV == 1;
-my ( $dir ) = @ARGV;
+die $usage unless scalar @ARGV == 2;
+my ( $dir, $SampleName ) = @ARGV;
 my $percent_masked_cutoff = 0.4;
 
-# get directory path
-my @fields = split(/\//, $dir);
-my $SampleName = $fields[$#fields];
 
 my $total_seq = 0;
 my $good_seq = 0;

@@ -23,20 +23,19 @@ sequence without N will be put into file .cdhit_out.masked.badSeq
 into file .cdhit_out.masked.RepeatLowComplexSeq
 3) output original sequnce into .cdhit_out.masked.goodSeq file.
 
-perl script <dir>
+perl script <dir> <sample name>
 <dir> = full path to the file without the last "/"
+<sample name> = sample name
 
 ';
-die $usage unless scalar @ARGV == 1;
-my ( $dir ) = @ARGV;
+die $usage unless scalar @ARGV == 2;
+my ( $dir, $sample_name ) = @ARGV;
 
 ####################################################################################################
 # get name of the sample and path to the data
 if ($dir =~/(.+)\/$/) {
 	$dir = $1;
 }
-my $sample_name = (split(/\//,$dir))[-1];
-print $sample_name,"\n";
 
 my $original_fa_file = $dir."/".$sample_name.".QCed.cdhit.tantan.fa";
 my %original_fa_seq = ();

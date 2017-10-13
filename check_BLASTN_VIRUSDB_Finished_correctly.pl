@@ -1,18 +1,18 @@
 #!/usr/bin/perl -w
 use strict;
 my $usage='
-perl script <sample dir>
+perl script <sample dir> <sample name>
 <sample dir> = full path of the folder holding files for this sample
                without last "/"
+<sample name> = sample name
+
 ';
-die $usage unless scalar @ARGV == 1;
-my ( $dir ) = @ARGV;
+die $usage unless scalar @ARGV == 2;
+my ( $dir, $sample_name ) = @ARGV;
 
 if ($dir =~/(.+)\/$/) {
         $dir = $1;
 }
-my $sample_name = (split(/\//,$dir))[-1];
-#print $sample_name,"\n";
 
 my $finished = &check_split_output($dir);
 #print $finished; 

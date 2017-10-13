@@ -816,7 +816,7 @@ sub seq_QC_TANTAN {
 
 	print STCH "if [ ! -e $status_log/j7_QC_TANTAN_finished ]\n";
 	print STCH "then\n";
-	print STCH "	".$run_script_path."Tantan_Sequence_Quality_Control.pl ".$sample_dir."\n";
+	print STCH "	".$run_script_path."Tantan_Sequence_Quality_Control.pl ${sample_dir} ${sample_name}\n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -862,7 +862,7 @@ sub prepare_for_RM {
 	# split into smaller files
 	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i  \${IN} -o $repeatmasker_dir -f $file_number_of_RepeatMasker -n $num_seq_per_file_Repeatmasker \n";
 	print STCH "	CHECK1=\$?\n"; # if finishes value is 0
-	print STCH "	".$run_script_path."check_split_RepeatMasker.pl \${SAMPLE_DIR}\n";
+	print STCH "	".$run_script_path."check_split_RepeatMasker.pl ${sample_dir} ${sample_name}\n";
 	print STCH "	CHECK2=\$?\n"; # if finishes correctly value is 0
 	print STCH "	if [ \${CHECK1} -ne 0 -o \${CHECK2} -ne 0 ] \n"; 
 	print STCH "	then\n";
@@ -954,9 +954,9 @@ sub seq_RMQC {
 
 	print STCH "if [ ! -e $status_log/j10_RMQC_output_finished ]\n";
 	print STCH "then\n";
-	print STCH "	".$run_script_path."RepeatMasker_SequenceQualityControl.pl ".$sample_dir."\n";
+	print STCH "	".$run_script_path."RepeatMasker_SequenceQualityControl.pl ${sample_dir} ${sample_name}\n";
 	print STCH '	CHECK1=$?',"\n"; # if finishes value is 0
-	print STCH "	".$run_script_path."RepeatMasker_check_SequenceQualityControl.pl \${SAMPLE_DIR} > \${QC_Record} \n";
+	print STCH "	".$run_script_path."RepeatMasker_check_SequenceQualityControl.pl ${sample_dir} ${sample_name} > \${QC_Record} \n";
 	print STCH '	CHECK2=$?',"\n"; # if finishes correctly value is 0
 	print STCH '	if [ ${CHECK1} -ne 0 -o ${CHECK2} -ne 0 ]',"\n"; # either one is not finished correctly
 	print STCH "	then\n";
@@ -1058,7 +1058,7 @@ sub Extract_Host_unmapped_reads{
 	print STCH "	OUT3=\$?\n";
 
 	# change unmasked sequence to masked sequence for BLAST
-	print STCH "	".$run_script_path."Unmasked_seq_to_masked_seq.pl $sample_dir \n"; 
+	print STCH "	".$run_script_path."Unmasked_seq_to_masked_seq.pl ${sample_dir} ${sample_name}\n"; 
 	print STCH "	OUT4=\$?\n";
 	# did not finish successfully
 	print STCH '	if [ ${OUT1} -ne 0 ] || [ ${OUT2} -ne 0 ] || [ ${OUT3} -ne 0 ] || [ ${OUT4} -ne 0 ] ',"\n"; 
@@ -1275,7 +1275,7 @@ sub extract_RefGenomeFiltered_reads{
 	print STCH "	QC_Record=".$sample_dir."/".$sample_name.".MegaBLAST_HOST_finish_check.txt\n\n";
 
 	# check to make sure all MegaBLAST finished and parser finished correctly
-	print STCH "	".$run_script_path."check_MegaBLAST_HOST_Finished_correctly.pl \${SAMPLE_DIR} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_MegaBLAST_HOST_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1485,7 +1485,7 @@ sub split_for_BLASTX_VIRUSDB {
 	print STCH "if [ ! -e $status_log/j20_finished_split_for_BLASTX_VIRUSDB ]\n";
 	print STCH "then\n";
 	# check to make sure the number of reads add togetehr equals the total input reads
-	print STCH "	".$run_script_path."check_BLASTN_VIRUSDB_Finished_correctly.pl \${SAMPLE_DIR} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_BLASTN_VIRUSDB_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1528,7 +1528,7 @@ sub split_for_BLASTX_VIRUSDB {
 	# the number of blast job array submitted bellow
 	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d \${SAMPLE_DIR} -i  \${BLASTN_VIRUSDB_Filtered_fa} -o \${BLASTX_VIRUSDB_DIR} -f $file_number_of_BLASTX_VIRUSDB  -n $num_seq_per_file_BLASTX_VIRUSDB \n";
 	print STCH '	CHECK1=$?',"\n";
-	print STCH "	".$run_script_path."check_split_BLASTX_VIRUSDB.pl \${SAMPLE_DIR}\n";
+	print STCH "	".$run_script_path."check_split_BLASTX_VIRUSDB.pl ${sample_dir} ${sample_name}\n";
 	print STCH '	CHECK2=$?',"\n";
 #	print STCH '	echo ${CHECK1}, ${CHECK2}', "\n";
 	print STCH '	if [ ${CHECK1} -ne 0 -o ${CHECK2} -ne 0 ]',"\n"; 
@@ -1693,7 +1693,7 @@ sub pool_seq_for_mapping_Bacteria {
 	print STCH "then\n";
 
 	# check to make sure the number of reads add togetehr equals the total input reads
-	print STCH "	".$run_script_path."check_BLASTX_VIRUSDB_Finished_correctly.pl \${SAMPLE_DIR} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_BLASTX_VIRUSDB_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1730,7 +1730,7 @@ sub pool_seq_for_mapping_Bacteria {
 	print STCH "	cat  $sample_dir/\${BLASTX_VIRUSDB_Hit_fa} $sample_dir/\${BLASTN_VIRUSDB_Hit_fa} > \${SAMPLE_DIR}/\${VIRUSDB_HIT_all} \n";
 
 	# change masked sequence to unmasked sequence for mapping to Bacteria
-	print STCH "	".$run_script_path."Masked_seq_to_unmasked_seq.pl $sample_dir \n"; 
+	print STCH "	".$run_script_path."Masked_seq_to_unmasked_seq.pl ${sample_dir} ${sample_name}\n"; 
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1835,7 +1835,7 @@ sub Extract_Bacteria_unmapped_reads{
 	print STCH "	fi\n";
     
 	# change unmasked sequence to masked for BLAST
-	print STCH "	".$run_script_path."Unmasked_seq_to_masked_seq_After_BacteriaMapping.pl $sample_dir \n"; 
+	print STCH "	".$run_script_path."Unmasked_seq_to_masked_seq_After_BacteriaMapping.pl ${sample_dir} ${sample_name}\n"; 
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -1881,7 +1881,7 @@ sub split_for_MegaBLAST_NT{
 
 	# split into smaller files
 	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i \${IN} -o \${MegaBLAST_DIR}   -f $file_number_of_MegaBLAST_NT -n $num_seq_per_file_MegaBLAST_NT \n";
-	print STCH "	".$run_script_path."check_split_MegaBLAST_NT.pl $sample_dir \n";
+	print STCH "	".$run_script_path."check_split_MegaBLAST_NT.pl ${sample_dir} ${sample_name}\n";
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2040,7 +2040,7 @@ sub pool_split_for_BlastN{
 	print STCH "if [ ! -e $status_log/j29_finished_split_for_BLASTN_NT ]\n"; # job never finished
 	print STCH "then\n";
 	# check to make sure all parser finished 
-	print STCH "	".$run_script_path."check_MegaBLAST_NT_Finished_correctly.pl \${SAMPLE_DIR} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_MegaBLAST_NT_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2066,7 +2066,7 @@ sub pool_split_for_BlastN{
 	
 	# split into smaller files
 	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i \${MegaBLAST_Filtered_fa} -o \${BLASTN_NT_DIR}   -f $file_number_of_BLASTN -n $num_seq_per_file_BLASTN \n";
-	print STCH "	".$run_script_path."check_split_BN.pl $sample_dir \n";
+	print STCH "	".$run_script_path."check_split_BN.pl ${sample_dir} ${sample_name}\n";
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2225,7 +2225,7 @@ sub pool_split_for_BLASTX{
 	print STCH "if [ ! -e $status_log/j32_BX_split_finished ]\n"; # job never finished
 	print STCH "then\n";
 	# check to make sure all parser finished 
-	print STCH "	".$run_script_path."check_BLAST_NT_Finished_correctly.pl \${SAMPLE_DIR} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_BLAST_NT_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2246,7 +2246,7 @@ sub pool_split_for_BLASTX{
 	print STCH "	cat $BLASTN_NT_dir/*.BNfiltered.fa >> $sample_dir/\${BNFiltered_fa}\n";
 
 	print STCH "	".$run_script_path."FASTA_file_split_given_numberOfFiles.pl -d $sample_dir -i \${BNFiltered_fa}  -o \${BX_DIR} -f $file_number_of_BLASTX -n $num_seq_per_file_BLASTX \n";
-	print STCH "	".$run_script_path."check_split_BX.pl ".$sample_dir."\n";
+	print STCH "	".$run_script_path."check_split_BX.pl ${sample_dir} ${sample_name} \n";
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2410,7 +2410,7 @@ sub generate_assignment_report{
 
 	# check to make sure all parser finished 
 
-	print STCH "	".$run_script_path."check_BLASTX_NR_Finished_correctly.pl \${SAMPLE_DIR} > \${QC_Record}  \n";
+	print STCH "	".$run_script_path."check_BLASTX_NR_Finished_correctly.pl ${sample_dir} ${sample_name} > \${QC_Record}  \n";
 	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2418,7 +2418,7 @@ sub generate_assignment_report{
 	print STCH "		exit 1\n"; 
 	print STCH "	fi\n";
 
-	print STCH "	".$run_script_path."Generate_assignment_report.pl ".$sample_dir." \${INPUT}\n";
+	print STCH "	".$run_script_path."Generate_assignment_report.pl ${sample_dir} ${sample_name}\n";
 	print STCH '	grep "# Finished Assignment Report" ${REPORT}',"\n";
 	print STCH '	CHECK=$?',"\n";
 	print STCH '	if [ ${CHECK} -ne 0 ]',"\n";   
@@ -2451,7 +2451,7 @@ sub generate_assignment_summary {
 	print STCH "if [ ! -e $status_log/j36_AssignmentSummary_finished ]\n"; # job never finished
 	print STCH "then\n";
 	print STCH "	date > \${TIMEFILE}\n";
-	print STCH "	".$run_script_path."Generate_assignment_summary.pl ".$sample_dir." \${BAD_SEQ}\n";
+	print STCH "	".$run_script_path."Generate_assignment_summary.pl ${sample_dir} ${sample_name}\n";
  	print STCH "	OUT=\$?\n"; 
 	print STCH '	if [ ${OUT} -ne 0 ]',"\n"; # did not finish successfully
 	print STCH "	then\n";
@@ -2486,7 +2486,7 @@ sub generate_phage_report{
 	print STCH "if [ ! -e $status_log/j37_PhageAssignmentReport_finished ]\n"; # job never finished
 	print STCH "then\n";
 	print STCH "	date > \${TIMEFILE}\n";
-	print STCH "	".$run_script_path."Phage_Generate_assignment_report.pl ".$sample_dir."\n";
+	print STCH "	".$run_script_path."Phage_Generate_assignment_report.pl ${sample_dir} ${sample_name}\n";
 	print STCH '	grep "# Finished Assignment Report" ${REPORT}',"\n";
 	print STCH '	CHECK=$?',"\n";
 	print STCH '	if [ ${CHECK} -ne 0 ]',"\n";   
@@ -2521,7 +2521,7 @@ sub generate_phage_summary {
 	print STCH '	CHECK=1',"\n";
 	print STCH '	while [ ${CHECK} -ne 0 ] ',"\n"; 
 	print STCH "	do\n";
-	print STCH "		".$run_script_path."Phage_Generate_assignment_summary.pl ".$sample_dir."\n";
+	print STCH "		".$run_script_path."Phage_Generate_assignment_summary.pl ${sample_dir} ${sample_name}\n";
 	print STCH '		grep "# Finished Assignment Summary" ${OUTPUT}',"\n";
 	print STCH '		CHECK=$?',"\n";
 	print STCH "	done\n";
