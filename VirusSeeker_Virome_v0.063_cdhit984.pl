@@ -1223,7 +1223,7 @@ sub parse_MegaBLAST_RefGenome {
 	print STCH '	if [ ! -e $PARSED ]',"\n";
 	print STCH "	then\n";
 	print STCH "		".$run_script_path."MegaBLAST_HG_parser.pl \${Ref_DIR} \${MegaBlastOUT} $refrence_genome_taxonomy \n";
-	print STCH "		".$run_script_path."check_Blast_parsed_file.pl \${Ref_DIR} \${PARSED}\n";
+	print STCH "		".$run_script_path."check_Blast_parsed_file.pl \${MegaBlastIN} \${PARSED}\n";
 	print STCH '		CHECK=$?',"\n";
 	#check if parsed file is completed, if not completed, exit
 	print STCH '		if [ ${CHECK} -ne 0 ]',"\n"; # value is 0 if completed correctly.
@@ -1240,7 +1240,7 @@ sub parse_MegaBLAST_RefGenome {
 	print STCH '		if [ ${CHECK} -ne 0 ]',"\n"; # value is 0 if completed correctly.
 	print STCH "		then\n"; # rerun the parser
 	print STCH "		".$run_script_path."MegaBLAST_HG_parser.pl \${Ref_DIR} \${MegaBlastOUT} $refrence_genome_taxonomy \n";
-	print STCH "		".$run_script_path."check_Blast_parsed_file.pl \${Ref_DIR} \${PARSED}\n";
+	print STCH "		".$run_script_path."check_Blast_parsed_file.pl \${MegaBlastIN} \${PARSED}\n";
 	print STCH '			CHECK=$?',"\n";
 	#check if parsed file is completed, if not completed, exit
 	print STCH '			if [ ${CHECK} -ne 0 ]',"\n"; # value is 0 if completed correctly.
