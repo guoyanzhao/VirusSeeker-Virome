@@ -35,7 +35,7 @@ my $normal = "\e[0m";
 This script will run the Metagenomic pipeline use Slurm Workload Manager.
 
 Pipeline version: $version
-$yellow		Usage: perl $0 <sample_folder><ref genome><use checkpointing> <step_number> $normal
+$yellow		Usage: perl $0 <sample_folder><ref genome><use checkpointing> <step_number> [workdir] $normal
 
 <sample_folder> = full path of the folder holding files for the sample
 <ref genome> = 1. Human genome
@@ -44,6 +44,8 @@ $yellow		Usage: perl $0 <sample_folder><ref genome><use checkpointing> <step_num
                4. Worm (C. brenneri)
                5. Mouse lemur (Microcebus_murinus)
 <use checkpointing> = 1. yes, 0. no
+
+[workdir] = working directory (default: ./workdir/)
 
 <step_number> = [1..38] run this pipeline step by step. (running the whole pipeline if step number is 0)
 $red	[1] Remove Adapter
@@ -97,11 +99,13 @@ $red	[37]  Generate phage report
 $normal
 OUT
 
-die $usage unless scalar @ARGV == 4;
-my ($sample_dir, $ref_genome_choice, $use_checkpoint,  $step_number) = @ARGV;
+die $usage unless scalar @ARGV >= 4;
+my ($sample_dir, $ref_genome_choice, $use_checkpoint,  $step_number, $workdir) = @ARGV;
 die $usage unless (($step_number >= 0)&&($step_number <= 38)) ;
 
-my $workdir = "outdir";
+if ($workdir eq "") {
+    $workdir = "workdir";
+}
 
 #####################################################################################
 # get name of the sample and path to the data
