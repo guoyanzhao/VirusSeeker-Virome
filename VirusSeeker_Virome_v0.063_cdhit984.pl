@@ -103,7 +103,7 @@ die $usage unless scalar @ARGV >= 4;
 my ($sample_dir, $ref_genome_choice, $use_checkpoint,  $step_number, $workdir) = @ARGV;
 die $usage unless (($step_number >= 0)&&($step_number <= 38)) ;
 
-if ($workdir eq "") {
+if (! $workdir or $workdir eq "") {
     $workdir = "workdir";
 }
 
