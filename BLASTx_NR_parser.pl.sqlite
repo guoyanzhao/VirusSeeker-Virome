@@ -38,10 +38,10 @@ my $E_cutoff = 1e-3;
 
 ###############################################################################
 # Modify script to use local configuration:
-my $database_dir = "/scratch/dwlab/databases/taxdump_20160802";
+my $database_dir = "/scratch/ref/dwlab/taxdump_20160802";
 
 # open a connection to database
-my $dbh_sqlite = DBI->connect("dbi:SQLite:dbname=/scratch/dwlab/databases/taxdump_20160802/vhunter.db","", "",{'RaiseError'=>1}) or die "Unable to connect $DBI::errstr\n";
+my $dbh_sqlite = DBI->connect("dbi:SQLite:dbname=/scratch/ref/dwlab/taxdump_20160802/vhunter.db","", "",{'RaiseError'=>1}) or die "Unable to connect $DBI::errstr\n";
 
 #################################################################################
 # Don't need to change anything below

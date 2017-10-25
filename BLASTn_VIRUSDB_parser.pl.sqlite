@@ -31,10 +31,10 @@ my ($dir, $blastout) = @ARGV;
 
 ################################################################################
 # Modify script to use local configuration:
-my $database_dir = "/scratch/dwlab/databases/taxdump_20160802";
+my $database_dir = "/scratch/ref/dwlab/taxdump_20160802";
 
 # open a connection to mysql database
-my $dbh_sqlite = DBI->connect("dbi:SQLite:dbname=/scratch/dwlab/databases/taxdump_20160802/vhunter.db","", "",{'RaiseError'=>1}) or die "Unable to connect $DBI::errstr\n";
+my $dbh_sqlite = DBI->connect("dbi:SQLite:dbname=/scratch/ref/dwlab/taxdump_20160802/vhunter.db","", "",{'RaiseError'=>1}) or die "Unable to connect $DBI::errstr\n";
 #my $dbh_mysql = DBI->connect("DBI:mysql:database=vhunter;host=192.168.123.1","kchen", "k123",{'RaiseError'=>1}) or die "Unable to connect $DBI::errstr\n";
 
 #################################################################################
