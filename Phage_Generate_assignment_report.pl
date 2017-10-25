@@ -9,7 +9,6 @@
 
 #!/usr/bin/perl
 use strict;
-use Switch;
 use Bio::SearchIO;
 
 my $usage = '
