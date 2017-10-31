@@ -9,8 +9,7 @@
 
 #!/usr/bin/perl
 use strict;
-use Switch;
-#use feature qw(switch);
+use feature qw(switch);
 use Bio::SearchIO;
 
 my $usage = '
@@ -512,16 +511,16 @@ sub collect_information {
 
 #		my ($read_ID, $length, $category, $lineage, $hit_name, $hit_length, $hit_desc, $hsp_len, $e_value) = split("\t", $_);
 #		print "readID = \\$read_ID\\, length = \\$length\\, category = \\$category\\, lineage = \\$lineage\\, desc = \\$desc\\\n";
-		switch ($category ) {
-			case ("Bacteria") { $category_hash_ref->{"Bacteria"}++;	}
-			case ("Fungi") { $category_hash_ref->{"Fungi"}++ ;}
-			case ("Homo") { $category_hash_ref->{"Homo"}++ ;}
-			case ("Mus") { $category_hash_ref->{"Mus"}++ ;}
-			case ("Phage") {$category_hash_ref->{"Phage"}++; }
-			case ("Viruses") { $category_hash_ref->{"Viruses"}++; }
-			case ("other") {$category_hash_ref->{"other"}++; }
-			case ("unassigned") {$category_hash_ref->{"unassigned"}++; }
-			case ("Ambiguous") {$category_hash_ref->{"Ambiguous"}++; } 
+		given ($category ) {
+			when ("Bacteria") { $category_hash_ref->{"Bacteria"}++;	}
+			when ("Fungi") { $category_hash_ref->{"Fungi"}++ ;}
+			when ("Homo") { $category_hash_ref->{"Homo"}++ ;}
+			when ("Mus") { $category_hash_ref->{"Mus"}++ ;}
+			when ("Phage") {$category_hash_ref->{"Phage"}++; }
+			when ("Viruses") { $category_hash_ref->{"Viruses"}++; }
+			when ("other") {$category_hash_ref->{"other"}++; }
+			when ("unassigned") {$category_hash_ref->{"unassigned"}++; }
+			when ("Ambiguous") {$category_hash_ref->{"Ambiguous"}++; } 
 		}
 
 		$desc = $read_ID."\t".$length."\t".$desc; 
