@@ -23,17 +23,16 @@ It will rank the virus lineage by range of percent ID from low to high.
 It will generate a .InterestingReads report about the details of each lineage
 and the sequence of reads belong to this lineage.
 
-perl script <sample folder> 
+perl script <sample folder> <sample name>
 <sample folder> = full path to the folder holding files for a given sample 
+<sample name> = sample name
 
 ';
 
-die $usage unless scalar @ARGV == 1;
-my ( $dir ) = @ARGV;
+die $usage unless scalar @ARGV == 2;
+my ( $dir, $lib_name ) = @ARGV;
 
 
-my @temp = split("\/", $dir);
-my $lib_name = pop @temp;
 
 # generate viral reads assignment summary
 my $out = $dir."/".$lib_name.".AssignmentSummary";

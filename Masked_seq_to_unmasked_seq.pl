@@ -16,18 +16,16 @@ This script will read sequence in RepeatMasker.goodSeq.RefGenome.unmapped.unmask
 corresponding masked sequence in the file .QCed.cdhit.fa 
 and output to a file RepeatMasker.goodSeq.RefGenome.unmapped.masked.fasta
 
-perl script <sample dir>
+perl script <sample dir> <sample name>
 <sample dir> = full path of the folder holding files for this sample
                without last "/"
+<sample name> = sample name
 
 ';
-die $usage unless scalar @ARGV == 1;
-my ( $dir ) = @ARGV;
+die $usage unless scalar @ARGV == 2;
+my ( $dir, $SampleName ) = @ARGV;
 my $percent_masked_cutoff = 0.4;
 
-# get directory path
-my @fields = split(/\//, $dir);
-my $SampleName = $fields[$#fields];
 
 
 my $UnmaskedFile = $dir."/".$SampleName.".QCed.cdhit.fa";

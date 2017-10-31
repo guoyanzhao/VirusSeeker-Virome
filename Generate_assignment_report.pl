@@ -16,17 +16,16 @@ my $usage = '
 This script will read corresponding files in the given director and 
 generate a report. 
 
-perl script <sample dir> 
+perl script <sample dir> <sample name>
 <sample dir> = full path to the directory holding files for the given 
                library without the last "/"
                e.g. ~/tools/Illumina_VirusDiscoveryPipeline/data/MiSeq_run_1/I10_12310_Project404_CSF_Glaser_Encephalitis_V11T00919_TruSeq-AD007_CAGATC
+<sample name> = sample name
 
 ';
-die $usage unless scalar @ARGV == 1;
-my ( $dir ) = @ARGV;
+die $usage unless scalar @ARGV == 2;
+my ( $dir, $sample_name ) = @ARGV;
 
-my @temp = split("\/", $dir);
-my $sample_name = pop @temp;
 # print "lib is $sample_name\n";
 
 ####################################
