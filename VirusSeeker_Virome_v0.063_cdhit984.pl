@@ -112,12 +112,12 @@ print $sample_name,"\n\n";
 
 #####################################################################################
 # path and name of databases
-my $db_BN = "/scratch/dwlab/databases/nt_20160802/nt";
-my $db_BX = "/scratch/dwlab/databases/nr_20160802/nr";
+my $db_BN = "/scratch/ref/dwlab/nt_20160802/nt";
+my $db_BX = "/scratch/ref/dwlab/nr_20160802/nr";
 # Virus database created by extracting all viral sequences from NR and then
 # CD-HIT clustered with 98% ID
-my $NR_VIRUS = "/scratch/dwlab/databases/VirusDBNR_20160802/VirusDBNR_20160802_ID98.fa";
-my $NT_VIRUS = "/scratch/dwlab/databases/VirusDBNT_20160802/VirusDBNT_20160802_ID98.fa";
+my $NR_VIRUS = "/scratch/ref/dwlab/VirusDBNR_20160802/VirusDBNR_20160802_ID98.fa";
+my $NT_VIRUS = "/scratch/ref/dwlab/VirusDBNT_20160802/VirusDBNT_20160802_ID98.fa";
 
 ####################################################################################
 # software path
@@ -162,7 +162,7 @@ my $MegaBLAST_dir_NT = $sample_dir."/".$sample_name."_MegaBLAST_NT";
 my $BLASTN_NT_dir = $sample_dir."/".$sample_name."_BLASTN_NT";
 my $BLASTX_NR_dir =$sample_dir."/".$sample_name."_BLASTX_NR";
 
-my $Bacteria_genome = "/scratch/dwlab/databases/Bacteria_ref/Bacteria_ref_genome.fna";
+my $Bacteria_genome = "/scratch/ref/dwlab/Bacteria_ref/Bacteria_ref_genome.fna";
 
 # reference genome taxonomy classification and database location.
 # Has to change $refrence_genome_taxonomy and $reference_genome based on the data 
@@ -175,19 +175,19 @@ if ($ref_genome_choice == 1) {
 	$refrence_genome_taxonomy = "Homo"; # use Bacteria, Homo, Phage, Fungi, Mus, other
 
 	# path to the reference genome 
-	$reference_genome = "/scratch/dwlab/databases/HumanGenome_BWA/human_g1k_v37.fasta";
+	$reference_genome = "/scratch/ref/dwlab/HumanGenome_BWA/human_g1k_v37.fasta";
 }
 elsif ($ref_genome_choice == 2) {
 	$refrence_genome_taxonomy = "Mus"; # use Bacteria, Homo, Phage, Fungi, Mus, other
-	$reference_genome = "/scratch/dwlab/databases/MouseGenome/MouseGenome_UCSC_mm10_2012_12_12.fa";
+	$reference_genome = "/scratch/ref/dwlab/MouseGenome/MouseGenome_UCSC_mm10_2012_12_12.fa";
 }
 elsif ($ref_genome_choice == 3) {
 	$refrence_genome_taxonomy = "other"; # use bacteria, homo, phage, fungi, mus, other
-	$reference_genome = "/scratch/dwlab/databases/CelegansCbriggsae/Celegans_WS220_Cbriggsae_WS234.fa";
+	$reference_genome = "/scratch/ref/dwlab/CelegansCbriggsae/Celegans_WS220_Cbriggsae_WS234.fa";
 }
 elsif ($ref_genome_choice == 4) {
 	$refrence_genome_taxonomy = "other"; # use bacteria, homo, phage, fungi, mus, other
-	$reference_genome = "/scratch/dwlab/databases/Cbrenneri/C_brenneri_genome.fa";
+	$reference_genome = "/scratch/ref/dwlab/Cbrenneri/C_brenneri_genome.fa";
 }
 elsif ($ref_genome_choice == 5) {
 	$refrence_genome_taxonomy = "other"; # use Bacteria, Homo, Phage, Fungi, Mus, other
